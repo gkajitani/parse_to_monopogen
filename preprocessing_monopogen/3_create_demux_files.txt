@@ -1,0 +1,17 @@
+# Create split.sh files for samples. I created 12 split.sh for demultiplexing 8 samples per bash script, such as: 
+
+nano split1.sh
+
+#!/bin/bash
+
+# Input file
+input_file="samples_1_8.txt"
+
+# Read each line from the input file
+while IFS=$'\t' read -r NUMBER1 NUMBER2; do
+    # Run the sambamba command with the extracted values
+    sambamba view merged_batch1.bam -h -t 40 -F "read_name =~ /^$NUMBER1/" -o "well_$NUMBER2.bam"
+done < "$input_file"
+
+
+# each samples.txt files (e.g. samples_1_8.txt,samples_9_16.txt) had, in each line, the number of the well as NUMBER1 and NUMBER2. You may replace the NUMBER2 with the sample ID.
