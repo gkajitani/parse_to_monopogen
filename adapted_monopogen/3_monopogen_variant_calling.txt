@@ -1,0 +1,7 @@
+# Adjust number of thread accordingly
+nohup Monopogen_bcf_mpileup.py germline \
+-a /Monopogen/apps \
+-r /Monopogen/resource/GRCh38.region.lst \
+-p /1K3G_imputation_panel/ \
+-g /Monopogen/resource/chr_Homo_sapiens.GRCh38.dna.primary_assembly.fa \
+-m 3 -s varScan -o all_samples -t 100
