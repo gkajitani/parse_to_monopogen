@@ -1,0 +1,2 @@
+# Adjust thread number according to your cluster
+sambamba merge -t 80 merged_batch1.bam ./barcode*
