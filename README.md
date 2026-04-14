@@ -5,4 +5,4 @@ Adapted from Monopogen, an analysis package for SNV calling from single-cell seq
 
 As Monopogen requires a single bam file for each sample, a demultiplex step was added for Parse Bioscience data.
 
-Monopogen.py was also edited to avoid using too many resources when using beagle for converting genotype likelihood to genotype probability.
+Monopogen.py was also adapted to use bcftools rather than samtools for mpileup (Monopogen_bcf.py).
