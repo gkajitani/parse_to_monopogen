@@ -5,3 +5,7 @@ nohup Monopogen_bcf_mpileup.py germline \
 -p /1K3G_imputation_panel/ \
 -g /Monopogen/resource/chr_Homo_sapiens.GRCh38.dna.primary_assembly.fa \
 -m 3 -s varScan -o all_samples -t 100
+
+# The above code will generate several .gl.vcf.gz files in the “germline” folder, one for each chromosomal region, containing variant data of all samples in each file. We’ll only combine them after the beagle part of the pipeline is done.
+
+# .gl.vcf.gz: genotype likelihoods for each variant
