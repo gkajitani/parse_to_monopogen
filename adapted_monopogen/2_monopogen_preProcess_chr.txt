@@ -1,0 +1,6 @@
+# Run the preprocessing of Monopogen that generates bam files based on chromosome locations, along with Monopogen scripts for variant calling.
+
+# Edit number of threads as necessary.
+Monopogen_bcf.py \
+preProcess -b bam.lst -o all_samples \
+-a /people/zrj346/Monopogen/apps -t 100
