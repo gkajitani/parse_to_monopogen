@@ -69,6 +69,36 @@ ggplot(samples_long, aes(x = as.numeric(Sample_ID), y = Percentage, fill = Ances
   )
 
 
+ggplot(samples_long, aes(x = as.numeric(Sample_ID), y = Percentage, fill = Ancestry)) +
+  geom_col(position = position_stack(reverse = FALSE), width = 1) +
+  
+  scale_fill_manual(values = c(
+    "Europe" = "#984EA3", 
+    "Africa" = "#E41A1C", 
+    "East Asia" = "#4DAF4A",
+    "South Asia" = "#FF7F00",
+    "America" = "#377EB8"
+  )) +
+  
+  scale_x_continuous(
+    breaks = seq(100, nrow(samples_df), by = 100),
+    labels = seq(100, nrow(samples_df), by = 100),
+    expand = c(0, 0)
+  ) +
+  
+  labs(
+    title = "Ancestry Proportions - All MEGA samples",
+    x = "Number of individuals",
+    y = "Genetic ancestry fractions (%)"
+  ) +
+  
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(size = 10),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank()
+  )
+
 # Using k-means to evaluate categorical ancestries (using 10 clusters max to plot screeplot then get the optimal k)
 cols    <- c("Europe", "Africa", "East.Asia", "South.Asia")
 k_max   <- 10
