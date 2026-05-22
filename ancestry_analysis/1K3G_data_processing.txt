@@ -1,0 +1,119 @@
+############################
+# Preparing 1000 Genomes data #
+############################
+
+# Note: 1K3G = 1000 genomes, phase 3
+
+# Downloaded 1K3G from:
+# https://www.cog-genomics.org/plink/2.0/resources#1kg_phase3
+
+# The above was in PLINK2 format. Had to convert it to PLINK1.9:
+
+plink2 --pfile all_phase3 \
+--allow-extra-chr \
+  	--max-alleles 2 \
+  	--chr 1-22 \
+  	--make-pgen \
+  	--out filter_all_phase3
+
+plink2 --pfile filter_all_phase3 \
+  	--max-alleles 2 \
+  	--chr 1-22 \
+  	--make-bed \
+  	--out plink1_all_phase3
+
+
+# Checking the chromosomes in the file:
+awk '{print $1}' plink1_all_phase3.bim | sort | uniq -c
+
+# To put the ancestries reported in the .psam file as FID in the .fam file:
+
+ancestry.sh
+#!/bin/bash
+
+# Create a lookup file from psam (ID to SuperPop)
+awk '{print $1 "\t" $5}' all_phase3.psam > id_superpop_lookup.txt
+
+# Update fam file using awk
+awk 'FNR==NR{superpop[$1]=$2; next} 
+     $2 in superpop{$1=superpop[$2]} 
+     {print $1, $2, $3, $4, $5, $6}' id_superpop_lookup.txt plink1_all_phase3.fam > updated_plink1_all_phase3.fam
+
+# Cleanup
+rm id_superpop_lookup.txt
+
+
+# Then, to convert it into hg19 (Perform Hg38 to Hg19 liftover):
+
+# First convert into .vcf
+plink --bfile plink1_all_phase3 \
+      --recode vcf \
+      --out hg38_plink1_all_phase3
+
+CrossMap vcf /people/zrj346/Monopogen/resource/hg38ToHg19.over.chain.gz hg38_plink1_all_phase3.vcf /people/zrj346/Monopogen/resource/Homo_sapiens.GRCh37.dna.primary_assembly.fa hg19_plink1_all_phase3.vcf 
+
+###############################################################
+# 1000 Genomes - Setting up sample data for merging before ancestry calling #
+###############################################################
+
+# Remove SNP duplicates
+
+bcftools annotate --set-id '%CHROM:%POS:%REF:%ALT' hg38_plink1_all_phase3.vcf | \
+bcftools view -e 'ID=="."' | \
+bcftools norm --rm-dup both | \
+bcftools view -m2 -M2 -v snps -Oz -o filtered.vcf.gz
+
+# Converting to PLINK files
+plink --vcf filtered.vcf.gz --make-bed --out plink_output
+plink --bfile plink_output --make-bed --out hg38_1K3G_filtered
+
+# Keeping only founders
+plink --bfile yourdata --filter-founders --make-bed --out founders_only
+
+awk '{if ($3 == 0 && $4 == 0) print $2}' plink1_all_phase3.fam > founder_ids.txt
+
+awk 'NR==FNR {to_keep[$1]; next} ($2 in to_keep) {print $1, $2}' founder_ids.txt hg38_1K3G_filtered.fam > founders_to_keep.txt
+
+plink --bfile hg38_1K3G_filtered --keep founders_to_keep.txt --make-bed --out hg38_1K3G_filtered_onlyfounders
+
+bcftools annotate --set-id '%CHROM:%POS:%REF:%ALT' hg38_plink1_all_phase3.vcf -o test.vcf
+
+########################################################################
+# Extracting sample list of a specific ancestry to remove from original file before merging #
+########################################################################
+
+# EUR - European
+# EAS - East asian
+# AMR - American
+# AFR - African
+# SAS - South asian
+
+# Getting sample list of a specific ancestry:
+awk '{if ($1 == "EAS") print $1, $2}' hg38_1K3G_filtered_noSAS_noAMR.fam > EAS_list.txt
+
+# Note: To remove samples from that specific ancestry/text file using plink --remove; to keep only that ancestry, use plink --keep
+
+plink --bfile hg38_1K3G_filtered_onlyfounders --remove EAS_list.txt --allow-extra-chr --make-bed --out hg38_1K3G_filtered_no_EAS
+
+plink --bfile hg38_1K3G_filtered_no_EAS --remove AMR_list.txt --allow-extra-chr --make-bed --out hg38_1K3G_filtered_AFR_EUR_SAS
+
+plink --bfile hg38_1K3G_filtered_noSAS_noAMR --remove EAS_list.txt --allow-extra-chr --make-bed --out hg38_1K3G_filtered_only_AFR_EUR
+
+plink --bfile plink1_all_phase3_filtered --keep EAS_list.txt --allow-extra-chr --make-bed --out EAS_1K3G
+
+awk '{if ($1 == "EUR") print $1, $2}' plink1_all_phase3_filtered.fam > EUR_list.txt
+
+awk '{if ($1 == "AMR") print $1, $2}' hg38_1K3G_filtered_onlyfounders.fam > AMR_list.txt
+
+awk '{if ($1 == "AFR") print $1, $2}' hg38_1K3G_filtered_onlyfounders.fam > AFR_list.txt
+
+awk '{if ($1 == "SAS") print $1, $2}' hg38_1K3G_filtered_onlyfounders.fam > SAS_list.txt
+
+awk '{if ($1 == "EAS") print $1, $2}' hg38_1K3G_filtered_onlyfounders.fam > EAS_list.txt
+
+plink --bfile hg38_1K3G_filtered_onlyfounders --remove SAS_list.txt --make-bed --out hg38_1K3G_filtered_noSAS
+plink --bfile hg38_1K3G_filtered_noSAS --remove AMR_list.txt --make-bed --out hg38_1K3G_filtered_noSAS_noAMR
+
+plink --bfile hg38_1K3G_filtered_onlyfounders --remove EAS_list.txt --make-bed --out hg38_1K3G_filtered_noEAS
+
+plink --bfile hg38_1K3G_filtered_noEAS --remove AMR_list.txt --make-bed --out hg38_1K3G_filtered_noEAS_noAMR
