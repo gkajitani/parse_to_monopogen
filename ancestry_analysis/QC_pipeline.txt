@@ -1,0 +1,57 @@
+#####################################
+# Genotyping QC for VCF/PLINK files #
+#####################################
+
+# Genotyping QC based on RICOPILI pipeline
+# https://sites.google.com/a/broadinstitute.org/ricopili/
+
+# Set all variants to the same format
+bcftools norm \
+  -m -both \
+  --rm-dup all \
+  Hg38_combined_CMC.vcf.gz \
+  -O z \
+  -o Hg38_combined_CMC_formatted.vcf.gz
+
+
+# Convert into PLINK 1.9 files:
+plink --vcf Hg38_combined_CMC_formatted.vcf.gz --const-fid --make-bed --out Hg38_combined_CMC
+
+# Removal of variants with low genotyping rate:
+plink --bfile Hg38_combined_CMC --geno 0.05 --make-bed --out Hg38_combined_CMC_geno
+
+# Removal of samples with low genotyping rate:
+plink --bfile Hg38_combined_CMC_geno --mind 0.1 --make-bed --out Hg38_combined_CMC_geno_mind
+
+# Removal of variants with low genotyping rate (second removal):
+plink --bfile Hg38_combined_CMC_geno_mind --geno 0.02 --make-bed --out Hg38_combined_CMC_geno_mind_geno
+
+# Removal of variants with low minor allele frequency (note: adjust if trying to find rare variants):
+plink --bfile Hg38_combined_CMC_geno_mind_geno --maf 0.05 --make-bed --out Hg38_combined_CMC_geno_mind_geno_maf
+
+# Removal of variants with a high deviation from Hardy-Weinberg Equilibrium:
+plink --bfile Hg38_combined_CMC_geno_mind_geno_maf --hwe 1e-6 --make-bed --out Hg38_combined_CMC_postQC
+
+
+#Pruning for ancestry analysis
+plink --bfile Hg38_combined_CMC_postQC \
+  --indep-pairwise 50 10 0.1 \
+  --out prune_list
+
+plink --bfile Hg38_combined_CMC_postQC --extract prune_list.prune.in --make-bed --out Hg38_combined_CMC_pruned_postQC
+
+
+# Recoding into vcf (if necessary):
+plink --bfile Hg38_combined_CMC_pruned_postQC --recode vcf --out Hg38_all_CMC_pruned_postQC
+
+# Check number of samples and chromosomes
+bcftools query -l Hg38_all_CMC_pruned_postQC
+bcftools view -h Hg38_all_CMC_pruned_postQC | grep -E '^##contig' | cut -d'=' -f3 | cut -d',' -f1
+
+
+# Compress it into bgzip format (necessary for index), then index the file:
+bgzip Hg38_all_CMC_pruned_postQC > Hg38_all_CMC_pruned_postQC
+bcftools index Hg38_all_CMC_pruned_postQC
+
+# Insert known rsIDs into the file:
+bcftools annotate -a /projects/thor_human-AUDIT/people/zrj346/vcf_PLINK/dbSNP/00-All.vcf.gz -c ID  Hg38_all_CMC_pruned_postQC > annotated_Hg38_all_CMC.vcf.gz
