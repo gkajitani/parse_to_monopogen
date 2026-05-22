@@ -1,0 +1,55 @@
+########################
+# PLINK files - postQC #
+########################
+
+
+#### NOTE: Sometimes, you might need to update/fix the bim files to have the right formatting. 
+# Check the bim header using head -n 3 Hg38_first_run_single_geno_mind_maf_hwe.bim to see if it has a something like:
+# 1	1:57856:A:T	0	57856	A	T
+# If it has something like: 
+# 1	.	0	57856	A	T
+# Then you need to replace the second column to replace the second column, follow these steps:
+
+# Create new SNP IDs in format "chr:pos:allele1:allele2"
+awk 'BEGIN{OFS="\t"} {$2=$1":"$4":"$5":"$6; print}' Hg38_first_run_single_geno_mind_maf_hwe.bim > fixed.bim
+
+# Verify the first few lines
+head -n 3 fixed.bim
+
+# Backup original files
+cp Hg38_first_run_single_geno_mind_maf_hwe.bim Hg38_first_run_original.bim
+
+# Replace with the fixed .bim file
+mv fixed.bim Hg38_first_run_single_geno_mind_maf_hwe.bim
+
+#############################################################################
+# Merging PLINK files - postQC file and 1K3G files with specific ancestries #
+#############################################################################
+
+
+#### Get a list of common_snps
+
+plink --bfile hg38_1K3G_filtered_noSAS_noAMR_single_maf_hwe --write-snplist --out hg38_1K3G_filtered_noSAS_noAMR_snps
+
+plink --bfile hg38_1K3G_filtered_onlyfounders_single_maf_hwe --write-snplist --out hg38_1K3G_filtered_onlyfounders_single_maf_hwe_snps
+
+sort Hg38_first_run_snps.snplist hg38_1K3G_filtered_noSAS_noAMR_snps.snplist | uniq -d > common_snps.txt
+
+### Extract SNPs common to both files
+plink --bfile Hg38_first_run_snps.snplist --extract common_snps.txt --make-bed --out Hg38_first_run_filtered_to_merge
+
+plink --bfile hg38_1K3G_filtered_noSAS_noAMR --extract common_snps.txt --make-bed --out hg38_1K3G_filtered_noSAS_noAMR_to_merge
+
+plink --bfile Hg38_first_run_filtered_to_merge --bmerge hg38_1K3G_filtered_noSAS_noAMR_to_merge --make-bed --out merge1
+
+#####################
+# Running ADMIXTURE #
+#####################
+
+# ADMIXTURE SOFTWARE:
+# https://dalexander.github.io/admixture/download.html
+# Number after bed: Number of expected ancestries
+# -j(NUMBER) : Number of threads
+
+/people/zrj346/admixure/dist/admixture_linux-1.3.0/admixture merge1.bed 3 -j40
+
