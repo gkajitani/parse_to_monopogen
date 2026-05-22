@@ -32,7 +32,7 @@ samples_df <- samples_df %>%
 
 samples_df$ancestry <- gsub("0", "Admixed", samples_df$ancestry)
 
-write.csv(samples_df,"ADMIXTURE_MEGA_all_all_ancestries.csv")
+write.csv(samples_df,"ADMIXTURE_5_ancestries.csv")
 
 # Reshape the data from wide to long format
 samples_long <- samples_df %>%
