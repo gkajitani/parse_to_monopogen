@@ -1,12 +1,12 @@
 library(tidyverse)
 
 # Scree plot
-eigenval <- read.table("pca_combined_samples_postQC_results.eigenval")
+eigenval <- read.table("pca_samples_all_postQC_results.eigenval")
 plot(eigenval$V1, type="b", 
      xlab="PC", ylab="Eigenvalue",
      main="Genotype PCs")
 
-eigenvec <- read.table("pca_combined_samples_postQC_results.eigenvec")
+eigenvec <- read.table("pca_samples_all_postQC_results.eigenvec")
 
 names(eigenvec)[1] <- "FID"
 names(eigenvec)[2] <- "Sample_ID"
@@ -21,7 +21,7 @@ names(eigenvec)[10] <- "PC8"
 names(eigenvec)[11] <- "PC9"
 names(eigenvec)[12] <- "PC10"
 
-samples_df <- read.csv("ADMIXTURE_combined_samples_5_ancestries.csv", row.names=1 )
+samples_df <- read.csv("ADMIXTURE_5_ancestries.csv", row.names=1 )
 
 merged_df <- merge(eigenvec, samples_df, by = "Sample_ID")
 
