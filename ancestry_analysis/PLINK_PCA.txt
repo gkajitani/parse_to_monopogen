@@ -1,0 +1,8 @@
+# PCA analysis using plink 1.9
+# https://www.cog-genomics.org/plink/
+# doi: 10.1086/519795
+
+plink --bfile hg38_samples_all_postQC_pruned --pca 10 --out pca_samples_all_postQC_results
+
+# Outputs several files, among them .eigenval and .eigenvec results.
+# .eigenval results can be used for checking scree plot, while .eigenvec are the actual PC values.
