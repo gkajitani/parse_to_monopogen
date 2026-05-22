@@ -1,11 +1,9 @@
 library(tidyverse)
 
-setwd("/projects/thor_human-AUDIT/people/zrj346/R_Scripts/ancestry_analysis")
-
 # Data and code for plotting the top 10 genotype PCs are in /projects/thor_human-AUDIT/people/zrj346/vcf_PLINK/MEGA_SCZ/ancestry_analysis/PCA/PCA_plot.R
 # Data and code for plotting ADMIXTURE-based ancestry analysis are in /projects/thor_human-AUDIT/people/zrj346/vcf_PLINK/MEGA_SCZ/ancestry_analysis/ADMIXTURE/plot_ADMXITURE_all_ancestries.R
 
-merged_df <- read.csv("metadata_MEGA_SCZ_ALL_genotypePCs_ancestry.csv", row.names=1)
+merged_df <- read.csv("metadata_samples_all_genotypePCs_ancestry.csv", row.names=1)
 
 ggplot(merged_df, aes(x=genotype_PC1, y=genotype_PC2, color=ancestry_categorical)) + geom_point(size=1.5,alpha=0.7) + theme_bw() +
   labs(x = "PC1", y = "PC2", color = "Ancestry") + 
@@ -158,12 +156,12 @@ ggplot(merged_df, aes(x=genotype_PC2, y=genotype_PC3, color=cluster_categorical)
   theme(legend.text = element_text(size=11), legend.title = element_text(size=10)) + guides(color = guide_legend(override.aes = list(size = 2)))
 
 
-write.csv(merged_df,"metadata_MEGA_SCZ_ALL_genotypePCs_ancestry_kmeans_5.csv")
+write.csv(merged_df,"metadata_samples_all_genotypePCs_ancestry_kmeans_5.csv")
 
 
 merged_df_long <- merged_df %>%
   pivot_longer(
-    cols = c("Europe","Africa","East.Asia","South.Asia"),
+    cols = c("Europe","Africa","East.Asia","South.Asia","America"),
     names_to = "variable",
     values_to = "value"
   )
@@ -177,6 +175,9 @@ cluster_order <- c("Europe-like",
 
 merged_df_long$cluster_categorical <- factor(merged_df_long$cluster_categorical, levels = rev(cluster_order))
 
+ancestry_order <- c("Europe","Africa","East.Asia","South.Asia","America")
+
+merged_df_long$variable <- factor(merged_df_long$variable, levels = rev(ancestry_order))
 
 
 ggplot(merged_df_long,
@@ -190,7 +191,7 @@ ggplot(merged_df_long,
   scale_fill_manual(values = c("Europe" = "#984EA3", 
                                 "Africa" = "#E41A1C", 
                                 "East.Asia" = "#4DAF4A",
-                                "South.Asia" = "#FF7F00")) + coord_flip()
+                                "South.Asia" = "#FF7F00","America" = "#377EB8")) + coord_flip()
 
 
 cats <- unique(merged_df_long$cluster_categorical)
@@ -199,7 +200,7 @@ n_cats <- length(cats)
 bg_df <- data.frame(
   xmin = seq(0.5, n_cats - 0.5, by = 1),
   xmax = seq(1.5, n_cats + 0.5, by = 1),
-  fill_bg = rep(c("white", "gray95"), length.out = n_cats)
+  fill_bg = rep(c("white", "gray92"), length.out = n_cats)
 )
 
 ggplot(merged_df_long,
@@ -226,7 +227,7 @@ ggplot(merged_df_long,
   scale_fill_manual(values = c("Europe" = "#984EA3",
                                "Africa" = "#E41A1C",
                                "East.Asia" = "#4DAF4A",
-                               "South.Asia" = "#FF7F00")) +
+                               "South.Asia" = "#FF7F00","America" = "#377EB8")) +
   coord_flip()
 
 ###############
@@ -285,15 +286,16 @@ ggplot(df, aes(x=genotype_PC2, y=genotype_PC3, color=cluster_categorical)) + geo
   theme(legend.text = element_text(size=11), legend.title = element_text(size=10)) + guides(color = guide_legend(override.aes = list(size = 2)))
 
 
-write.csv(df,"metadata_MEGA_SCZ_ALL_genotypePCs_ancestry_kmeans_4.csv")
+write.csv(df,"metadata_samples_all_genotypePCs_ancestry_kmeans_4.csv")
 
 
 df_long <- df %>%
   pivot_longer(
-    cols = c("Europe","Africa","East.Asia","South.Asia"),
+    cols = c("Europe","Africa","East.Asia","South.Asia","America"),
     names_to = "variable",
     values_to = "value"
   )
+
 
 cluster_order <- c("Europe-like", 
                    "Africa-like", 
@@ -301,6 +303,10 @@ cluster_order <- c("Europe-like",
                    "Admixed-like")
 
 df_long$cluster_categorical <- factor(df_long$cluster_categorical, levels = rev(cluster_order))
+
+ancestry_order <- c("Europe","Africa","East.Asia","South.Asia","America")
+
+df_long$variable <- factor(df_long$variable, levels = rev(ancestry_order))
 
 
 ggplot(df_long,
@@ -314,7 +320,7 @@ ggplot(df_long,
   scale_fill_manual(values = c("Europe" = "#984EA3", 
                                "Africa" = "#E41A1C", 
                                "East.Asia" = "#4DAF4A",
-                               "South.Asia" = "#FF7F00")) + coord_flip()
+                               "South.Asia" = "#FF7F00","America" = "#377EB8")) + coord_flip()
 
 
 cats <- unique(df_long$cluster_categorical)
@@ -350,5 +356,5 @@ ggplot(df_long,
   scale_fill_manual(values = c("Europe" = "#984EA3",
                                "Africa" = "#E41A1C",
                                "East.Asia" = "#4DAF4A",
-                               "South.Asia" = "#FF7F00")) +
+                               "South.Asia" = "#FF7F00","America" = "#377EB8")) +
   coord_flip()
