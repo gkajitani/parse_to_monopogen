@@ -1,8 +1,5 @@
 library(tidyverse)
 
-# Data and code for plotting the top 10 genotype PCs are in /projects/thor_human-AUDIT/people/zrj346/vcf_PLINK/MEGA_SCZ/ancestry_analysis/PCA/PCA_plot.R
-# Data and code for plotting ADMIXTURE-based ancestry analysis are in /projects/thor_human-AUDIT/people/zrj346/vcf_PLINK/MEGA_SCZ/ancestry_analysis/ADMIXTURE/plot_ADMXITURE_all_ancestries.R
-
 merged_df <- read.csv("metadata_samples_all_genotypePCs_ancestry.csv", row.names=1)
 
 ggplot(merged_df, aes(x=genotype_PC1, y=genotype_PC2, color=ancestry_categorical)) + geom_point(size=1.5,alpha=0.7) + theme_bw() +
