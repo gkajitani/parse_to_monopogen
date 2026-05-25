@@ -3,4 +3,4 @@
 # Edit number of threads as necessary.
 Monopogen_bcf.py \
 preProcess -b bam.lst -o all_samples \
--a /people/zrj346/Monopogen/apps -t 100
+-a /Monopogen/apps -t 100
