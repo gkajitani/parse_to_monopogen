@@ -52,5 +52,5 @@ plink --bfile Hg38_combined_samples_pruned_postQC_to_merge --bmerge hg38_1K3G_fi
 # Number after bed: Number of expected ancestries
 # -j(NUMBER) : Number of threads
 
-/people/zrj346/admixure/dist/admixture_linux-1.3.0/admixture merge1.bed 3 -j40
+/admixure/dist/admixture_linux-1.3.0/admixture merge1.bed 3 -j40
 
